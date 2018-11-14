@@ -13,7 +13,7 @@ const redis = require('redis');
 const helmet = require('helmet');
 const methodOverride = require('method-override');
 const async = require("async");
-const sock_js = require("./Socket/socket");
+const sock_js = require("./Sockets/socket-io");
 const log4js = require('log4js');
 const logger = log4js.getLogger('[SERVER]');
 logger.level = 'debug';
@@ -22,7 +22,7 @@ logger.level = 'debug';
 [START] Middlewares Initilization
 */
 app.use(methodOverride());
-app.set('json spaces', 1);
+app.set('json spaces', 4);
 app.use(helmet());
 app.use(cors());
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
@@ -60,11 +60,11 @@ function start_initial_process(parent_callback) {
         redis_connect: function (callback) {
             global.redis_client = redis.createClient(config.get("redis_port"), config.get('redis_host'));
             redis_client.on('connect', (err, done) => {
-                return callback();
             });
             redis_client.on("error", (err) => {
-                return callback(err);
+                logger.error("redis-client-error", err);
             })
+            return callback();
         },
     };
     return async.autoInject(connection_tasks, parent_callback);
